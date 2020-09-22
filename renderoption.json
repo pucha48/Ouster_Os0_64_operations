@@ -26,7 +26,7 @@
 	"light3_specular_power" : 0.20000000000000001,
 	"light3_specular_shininess" : 100.0,
 	"light_ambient_color" : [ 0.0, 0.0, 0.0 ],
-	"light_on" : false,
+	"light_on" : true,
 	"line_width" : 1.0,
 	"mesh_color_option" : 1,
 	"mesh_shade_option" : 0,
@@ -35,7 +35,7 @@
 	"point_color_option" : 0,
 	"point_show_normal" : false,
 	"point_size" : 2.0,
-	"show_coordinate_frame" : false,
+	"show_coordinate_frame" : true,
 	"version_major" : 1,
 	"version_minor" : 0
 }
