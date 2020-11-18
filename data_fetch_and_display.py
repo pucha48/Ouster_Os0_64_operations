@@ -4,6 +4,8 @@ import numpy as np
 import open3d as o3d
 import pcl
 import time
+import threading
+
 from conti_plotting import plane_segmentation,roi_filter , clustering, get_cluster_box_list
 lines = [
         [0, 1],
@@ -21,12 +23,15 @@ lines = [
 ]
 
 #  System IP and Sensor IP
-system_ip = '169.254.61.32'
-sensor_ip = '169.254.61.31'
+# system_ip = '169.254.61.32'
+# sensor_ip = '169.254.61.31'
+system_ip = '192.168.1.10'
+sensor_ip = '192.168.1.67'
 fetch_mode = '1024x10'
 lidar_channels = 64
 resolution = 1024
 fnt =0
+
 
 # init_sample_data = np.random.randn(16384 ,3)   # Random data
 init_sample_data = np.random.randn(65536 ,3)   # Random data
@@ -40,7 +45,7 @@ pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(init_sample_data)
 
 vis.add_geometry(pcd)
-
+pcd_file_dir="/home/imlb/PycharmProjects/Lidar/Ouster_Os0_64_operations/pcd_data/"
 
 line_x = []
 line_y = []
@@ -80,11 +85,11 @@ def handler(raw_packet):
 
             cloud_XYZ = pcl.PointCloud()
             cloud_XYZ.from_array(xyz)
-            cloud_roi_filtered = roi_filter(cloud_XYZ, [-1, 50], [-2,2], [-2, 2])
+            # cloud_roi_filtered = roi_filter(cloud_XYZ, [0, 5], [-2,2], [-2,1])
 
-            indices, coefficients = plane_segmentation(cloud_roi_filtered, 0.1, 1000)
+            # indices, coefficients = plane_segmentation(cloud_roi_filtered], 0.1, 1000)
 
-            cloud_plane = cloud_roi_filtered.extract(indices, negative=True)
+            # cloud_plane = cloud_roi_filtered.extract(indices, negative=True)
 
             # cluster_indices = clustering(cloud_plane, 0.3, 30, 100)
             #
@@ -104,18 +109,23 @@ def handler(raw_packet):
             # if box_coord_list != []:
             # point_cloud_np = np.array(line_set)
             # point_cloud_np = np.array(point_cloud_np)
-            point_cloud_np = np.array(cloud_roi_filtered)
+            point_cloud_np = np.array(cloud_XYZ)
             ##############################################################################################
             # print("cloud data", point_cloud_np.shape)
 
             pcd.points = o3d.utility.Vector3dVector(point_cloud_np)
-            pcd.paint_uniform_color([0,1,0])
-            np.asarray(pcd.colors)[indices[0:], :] = [1, 0, 0]
-            print(np.asarray(pcd.colors).shape)
+            # pcd.paint_uniform_color([0,1,0])
+            # np.asarray(pcd.colors)[indices[0:], :] = [1, 0, 0]
+            # print(np.asarray(pcd.colors).shape)
             # np.asarray(pcd.colors)
             # np.asarray(pcd.colors)[indices[1:], :] = [1, 0, 0]
-            # file_name= "3d_point_"+str(fnt)+".png"
+
+            # ************************************************ save data in pcd/ply format *****************************************
+            file_name= pcd_file_dir+"3d_point_"+str(fnt)+".pcd"
+            o3d.io.write_point_cloud(file_name , pcd)
             # vis.capture_screen_image(file_name)
+
+            #***************************************************************************************************************
             vis.update_geometry()
             vis.poll_events()
             vis.update_renderer()
@@ -124,9 +134,12 @@ def handler(raw_packet):
             line_y = []
             line_z = []
 
+
 os1 = OS1(sensor_ip, system_ip, mode=fetch_mode)  # OS1 sensor IP, destination IP, and resolution
-# Inform the sensor of the destination host and reintialize it
+    # Inform the sensor of the destination host and reintialize it
 os1.start()
 os1.run_forever(handler)
+
+
 
 
